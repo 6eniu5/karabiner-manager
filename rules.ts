@@ -1,18 +1,27 @@
 import fs from "fs";
-import { KarabinerRules } from "./types";
-import { createHyperSubLayers, app, open, window, shell } from "./utils";
+import os from "os";
+import { KarabinerRules, KeyCode } from "./types";
+import {
+  createHyperSubLayers,
+  app,
+  open,
+  rectangle,
+  shell,
+} from "./utils";
 
 const rules: KarabinerRules[] = [
-  // Define the Hyper key itself
+  // Define the Hyper key itself (Shift + Command + Option)
   {
-    description: "Hyper Key (⌃⌥⇧⌘)",
+    description: "Hyper Key (⇧⌘⌥ = Shift + Command + Option)",
     manipulators: [
+      // Left Shift with Left Command + Left Option held -> Set Hyper
       {
-        description: "Caps Lock -> Hyper Key",
+        description: "Left Shift + Left Command + Left Option -> Hyper Key",
+        type: "basic",
         from: {
-          key_code: "caps_lock",
+          key_code: "left_shift",
           modifiers: {
-            optional: ["any"],
+            mandatory: ["left_command", "left_option"],
           },
         },
         to: [
@@ -31,12 +40,141 @@ const rules: KarabinerRules[] = [
             },
           },
         ],
-        to_if_alone: [
+      },
+      // Left Command with Left Shift + Left Option held -> Set Hyper
+      {
+        description: "Left Command + Left Shift + Left Option -> Hyper Key",
+        type: "basic",
+        from: {
+          key_code: "left_command",
+          modifiers: {
+            mandatory: ["left_shift", "left_option"],
+          },
+        },
+        to: [
           {
-            key_code: "escape",
+            set_variable: {
+              name: "hyper",
+              value: 1,
+            },
           },
         ],
+        to_after_key_up: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 0,
+            },
+          },
+        ],
+      },
+      // Left Option with Left Shift + Left Command held -> Set Hyper
+      {
+        description: "Left Option + Left Shift + Left Command -> Hyper Key",
         type: "basic",
+        from: {
+          key_code: "left_option",
+          modifiers: {
+            mandatory: ["left_shift", "left_command"],
+          },
+        },
+        to: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 1,
+            },
+          },
+        ],
+        to_after_key_up: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 0,
+            },
+          },
+        ],
+      },
+      // Right Shift with Right Command + Right Option held -> Set Hyper
+      {
+        description: "Right Shift + Right Command + Right Option -> Hyper Key",
+        type: "basic",
+        from: {
+          key_code: "right_shift",
+          modifiers: {
+            mandatory: ["right_command", "right_option"],
+          },
+        },
+        to: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 1,
+            },
+          },
+        ],
+        to_after_key_up: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 0,
+            },
+          },
+        ],
+      },
+      // Right Command with Right Shift + Right Option held -> Set Hyper
+      {
+        description: "Right Command + Right Shift + Right Option -> Hyper Key",
+        type: "basic",
+        from: {
+          key_code: "right_command",
+          modifiers: {
+            mandatory: ["right_shift", "right_option"],
+          },
+        },
+        to: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 1,
+            },
+          },
+        ],
+        to_after_key_up: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 0,
+            },
+          },
+        ],
+      },
+      // Right Option with Right Shift + Right Command held -> Set Hyper
+      {
+        description: "Right Option + Right Shift + Right Command -> Hyper Key",
+        type: "basic",
+        from: {
+          key_code: "right_option",
+          modifiers: {
+            mandatory: ["right_shift", "right_command"],
+          },
+        },
+        to: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 1,
+            },
+          },
+        ],
+        to_after_key_up: [
+          {
+            set_variable: {
+              name: "hyper",
+              value: 0,
+            },
+          },
+        ],
       },
       //      {
       //        type: "basic",
@@ -56,48 +194,33 @@ const rules: KarabinerRules[] = [
     ],
   },
   ...createHyperSubLayers({
-    spacebar: open(
-      "raycast://extensions/stellate/mxstbr-commands/create-notion-todo"
-    ),
+    // Hyper + Enter / 1 -> WezTerm
+    return_or_enter: app("WezTerm"),
+    "1": app("WezTerm"),
+    "2": app("Google Chrome"),
+    "3": app("Zed"),
+    "4": app("Finder"),
+    "5": app("Spotify"),
+    "6": app("Slack"),
+    "7": app("Discord"),
+    "8": app("Notion"),
+    "9": app("Texts"),
     // b = "B"rowse
     b: {
-      t: open("https://twitter.com"),
       // Quarterly "P"lan
-      p: open("https://mxstbr.com/cal"),
-      y: open("https://news.ycombinator.com"),
-      f: open("https://facebook.com"),
+      // p: open("https://mxstbr.com/cal"),
       r: open("https://reddit.com"),
-      h: open("https://hashnode.com/draft"),
     },
-    // o = "Open" applications
-    o: {
-      1: app("1Password"),
-      g: app("Google Chrome"),
-      c: app("Notion Calendar"),
-      v: app("Zed"),
+    // x = "Open" applications (moved from 'o')
+    x: {
       d: app("Discord"),
       s: app("Slack"),
       e: app("Superhuman"),
-      n: app("Notion"),
-      t: app("Terminal"),
-      // Open todo list managed via *H*ypersonic
-      h: open(
-        "notion://www.notion.so/stellatehq/7b33b924746647499d906c55f89d5026"
-      ),
-      z: app("zoom.us"),
-      // "M"arkdown (Reflect.app)
-      m: app("Reflect"),
-      r: app("Reflect"),
-      f: app("Finder"),
-      // "i"Message
-      i: app("Texts"),
-      p: app("Spotify"),
-      a: app("iA Presenter"),
+      // a: app("iA Presenter"),
       // "W"hatsApp has been replaced by Texts
-      w: open("Texts"),
-      l: open(
-        "raycast://extensions/stellate/mxstbr-commands/open-mxs-is-shortlink"
-      ),
+      // l: open(
+      //   "raycast://extensions/stellate/mxstbr-commands/open-mxs-is-shortlink"
+      // ),
     },
 
     // TODO: This doesn't quite work yet.
@@ -115,8 +238,8 @@ const rules: KarabinerRules[] = [
     //   `,
     // },
 
-    // w = "Window"
-    w: {
+    // j = "Window" via rectangle.app (moved from 'w' to make room for desktop switching)
+    j: {
       semicolon: {
         description: "Window: Hide",
         to: [
@@ -126,13 +249,13 @@ const rules: KarabinerRules[] = [
           },
         ],
       },
-      y: window("previous-display"),
-      o: window("next-display"),
-      k: window("top-half"),
-      j: window("bottom-half"),
-      h: window("left-half"),
-      l: window("right-half"),
-      f: window("maximize"),
+      y: rectangle("previous-display"),
+      o: rectangle("next-display"),
+      k: rectangle("top-half"),
+      j: rectangle("bottom-half"),
+      h: rectangle("left-half"),
+      l: rectangle("right-half"),
+      f: rectangle("maximize"),
       u: {
         description: "Window: Previous Tab",
         to: [
@@ -233,9 +356,9 @@ const rules: KarabinerRules[] = [
           },
         ],
       },
-      e: open(
-        `raycast://extensions/thomas/elgato-key-light/toggle?launchType=background`
-      ),
+      // e: open(
+      //   `raycast://extensions/thomas/elgato-key-light/toggle?launchType=background`
+      // ),
       // "D"o not disturb toggle
       d: open(
         `raycast://extensions/yakitrak/do-not-disturb/toggle?launchType=background`
@@ -302,8 +425,8 @@ const rules: KarabinerRules[] = [
       },
     },
 
-    // r = "Raycast"
-    r: {
+    // k = "Raycast" (moved from 'r' to make room for desktop switching)
+    k: {
       c: open("raycast://extensions/thomas/color-picker/pick-color"),
       n: open("raycast://script-commands/dismiss-notifications"),
       l: open(
@@ -326,49 +449,56 @@ const rules: KarabinerRules[] = [
       ),
     },
   }),
+  // {
+  //   description: "Change Backspace to Spacebar when Minecraft is focused",
+  //   manipulators: [
+  //     {
+  //       type: "basic",
+  //       from: {
+  //         key_code: "delete_or_backspace",
+  //       },
+  //       to: [
+  //         {
+  //           key_code: "spacebar",
+  //         },
+  //       ],
+  //       conditions: [
+  //         {
+  //           type: "frontmost_application_if",
+  //           file_paths: [
+  //             "^/Users/mxstbr/Library/Application Support/minecraft/runtime/java-runtime-gamma/mac-os-arm64/java-runtime-gamma/jre.bundle/Contents/Home/bin/java$",
+  //           ],
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
+];
+
+const karabinerConfigPath = process.env.KARABINER_CONFIG_PATH || 
+  `${process.env.HOME || os.homedir()}/.config/karabiner/karabiner.json`;
+
+const config = JSON.stringify(
   {
-    description: "Change Backspace to Spacebar when Minecraft is focused",
-    manipulators: [
+    global: {
+      show_in_menu_bar: false,
+    },
+    profiles: [
       {
-        type: "basic",
-        from: {
-          key_code: "delete_or_backspace",
+        name: "Default profile",
+        complex_modifications: {
+          rules,
         },
-        to: [
-          {
-            key_code: "spacebar",
-          },
-        ],
-        conditions: [
-          {
-            type: "frontmost_application_if",
-            file_paths: [
-              "^/Users/mxstbr/Library/Application Support/minecraft/runtime/java-runtime-gamma/mac-os-arm64/java-runtime-gamma/jre.bundle/Contents/Home/bin/java$",
-            ],
-          },
-        ],
       },
     ],
   },
-];
-
-fs.writeFileSync(
-  "karabiner.json",
-  JSON.stringify(
-    {
-      global: {
-        show_in_menu_bar: false,
-      },
-      profiles: [
-        {
-          name: "Default",
-          complex_modifications: {
-            rules,
-          },
-        },
-      ],
-    },
-    null,
-    2
-  )
+  null,
+  2
 );
+
+// Write to both locations: project directory (for git) and actual config location
+fs.writeFileSync("karabiner.json", config);
+fs.writeFileSync(karabinerConfigPath, config);
+
+console.log(`✓ Configuration written to: ${karabinerConfigPath}`);
+console.log(`✓ Configuration also written to: karabiner.json`);

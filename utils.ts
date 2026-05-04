@@ -5,6 +5,7 @@ import { To, KeyCode, Manipulator, KarabinerRules } from "./types";
  */
 export interface LayerCommand {
   to: To[];
+  to_after_key_up?: To[];
   description?: string;
 }
 
@@ -116,12 +117,16 @@ export function createHyperSubLayers(subLayers: {
           description: `Hyper Key + ${key}`,
           manipulators: [
             {
-              ...value,
+              to: value.to,
+              to_after_key_up: value.to_after_key_up,
+              description: value.description,
               type: "basic" as const,
               from: {
                 key_code: key as KeyCode,
                 modifiers: {
                   optional: ["any"],
+                  // Explicitly allow the hyper modifiers to be present
+                  mandatory: [],
                 },
               },
               conditions: [
@@ -192,13 +197,13 @@ export function shell(
 }
 
 /**
- * Shortcut for managing window sizing
+ * Shortcut for managing window sizing with Rectangle
  */
-export function window(name: string): LayerCommand {
+export function rectangle(name: string): LayerCommand {
   return {
     to: [
       {
-        shell_command: `open -g raycast://extensions/raycast/window-management/${name}`,
+        shell_command: `open -g rectangle://execute-action?name=${name}`,
       },
     ],
     description: `Window: ${name}`,
@@ -211,3 +216,4 @@ export function window(name: string): LayerCommand {
 export function app(name: string): LayerCommand {
   return open(`-a '${name}.app'`);
 }
+

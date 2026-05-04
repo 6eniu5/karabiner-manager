@@ -10,12 +10,17 @@ export interface Manipulator {
   to?: To[];
   to_after_key_up?: To[];
   to_if_alone?: To[];
+  to_delayed_action?: {
+    to_if_invoked?: To[];
+    to_if_canceled?: To[];
+  };
   parameters?: Parameters;
   conditions?: Conditions[];
 }
 
 export interface Parameters {
   "basic.simultaneous_threshold_milliseconds"?: number;
+  "basic.to_delayed_action_delay_milliseconds"?: number;
 }
 
 type Conditions =
@@ -39,7 +44,7 @@ type DeviceCondition = {
     | "device_unless"
     | "device_exists_if"
     | "device_exists_unless";
-  identifiers: Identifiers[];
+  identifiers: Identifiers;
   description?: string;
 };
 
